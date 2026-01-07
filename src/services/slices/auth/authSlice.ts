@@ -45,6 +45,7 @@ export const registerUser = createAsyncThunk(
   async (data: { email: string; name: string; password: string }) => {
     const res = await registerUserApi(data);
     localStorage.setItem('refreshToken', res.refreshToken);
+    setCookie('accessToken', res.accessToken);
     return res.user;
   }
 );
