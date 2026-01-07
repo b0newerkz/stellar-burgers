@@ -1,23 +1,27 @@
 import { FC, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
 
+import { useAppSelector } from '../../services/store';
+import { selectIngredients } from '../../services/slices/ingredients/ingredientsSlice';
+import { selectFeedOrders } from '../../services/slices/feed/feedSlice';
+import { selectProfileOrders } from '../../services/slices/profile-orders/profileOrdersSlice';
+
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const { number } = useParams();
+  const ingredients: TIngredient[] = useAppSelector(selectIngredients);
 
-  const ingredients: TIngredient[] = [];
+  const feedOrders = useAppSelector(selectFeedOrders);
+  const profileOrders = useAppSelector(selectProfileOrders);
 
-  /* Готовим данные для отображения */
+  const orderNumber = Number(number);
+  const orderData =
+    feedOrders.find((o) => o.number === orderNumber) ||
+    profileOrders.find((o) => o.number === orderNumber) ||
+    null;
+
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
