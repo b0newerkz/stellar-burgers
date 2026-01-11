@@ -11,9 +11,6 @@ describe('Страница конструктора бургера', () => {
 			'getUser'
 		);
 
-		cy.intercept('POST', `${api}/auth/login*`, { fixture: 'login.json' }).as(
-			'login'
-		);
 		cy.intercept('POST', `${api}/orders*`, { fixture: 'order.json' }).as(
 			'createOrder'
 		);
@@ -52,17 +49,17 @@ describe('Страница конструктора бургера', () => {
 
 	it('Создание заказа, проверка очистки конструктора', () => {
 		
-		// Авторизуемся
-		cy.contains('Личный кабинет').click();
-		cy.contains('Вход').should('exist');
-		cy.get('input[name="email"]').type('test@test.ru');
-		cy.get('input[name="password"]').type('123456');
-		cy.contains('Войти').click();
-		cy.wait('@login');
-		cy.contains('Конструктор').click();
+		cy.window().then((win) => {
+			win.localStorage.setItem('refreshToken', 'test-refresh-token');
+		});
+		cy.setCookie('accessToken', 'test-access-token');
+
+		// Перезагружаем страницу
+		cy.reload();
+		cy.wait('@getIngredients');
+		cy.wait('@getUser');
 
 		// Делаем заказ
-		cy.wait('@getIngredients');
 		cy.contains('Булка Тестовая').parents('li').contains('Добавить').click();
 		cy.contains('Котлета Тестовая').parents('li').contains('Добавить').click();
 		cy.contains('Оформить заказ').click();
@@ -74,6 +71,12 @@ describe('Страница конструктора бургера', () => {
 		// Конструктор очищен (снова показываются подсказки)
 		cy.contains('Выберите булки').should('exist');
 		cy.contains('Выберите начинку').should('exist');
+
+		// После теста очищаем токены (как в требованиях)
+		cy.clearCookie('accessToken');
+		cy.window().then((win) => {
+			win.localStorage.removeItem('refreshToken');
+		});
 	});
 	
 });
